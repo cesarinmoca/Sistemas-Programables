@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practica 2.2</title>
+    <link rel="stylesheet" href="./css/styles.css"> 
+    <script src="./js/script.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Practica 2.2</h1>
+    </header>
+    <div class="container">
+        <h2>2.2</h2>
+        <p>ENTREGA MANUAL:  Desplegar temperatura en OLED Display con bitArray imagen <br><br>
+
+
+            La PicoW y Pico, tienen un sensor interno de temperatura, debemos probarlo y asi 
+            finalmente liberar el hardware de algún defecto que desde el 2020 no ha sucedido; 
+            el fabricante el SONY U.K, con licencia de RaspberryPi Foundation. <br><br>
+
+            -Alternativa de desplegar la  Temperatura e incluir un bitArray imagen temàtica de esta 
+            pràctica (Frio, Càlido, Caliente) <br>
+            -Puede ser una versiòn 2 donde una imagen fija  con la temperatura formato local e 
+            internacional (ver 2da figura) <br><br>
+
+            NOTA: La entrega es manual al docente que calificará con su celular <br><br>
+            
+            RUBRICA: <br>
+            10% Còdigo tiene un encabezado con las generales del programador <br>
+            10% Hay mas de 4 comentaros en su còdigo <br>
+            40% Funciona el sensor de temperatura <br>
+            40% Despliega segun los  caso mixtos mencionados o nuevas propuestas. <br>
+        </p>
+        <img src="./img/temperatura.png" alt="Oled con temperatura" class="centered-image">
+        <pre>
+            from machine import Pin, I2C
+            from ssd1306 import SSD1306_I2C
+            import framebuf
+            import machine
+            import utime
+
+            # Inicializa la pantalla OLED
+            i2c = I2C(0, sda=Pin(0), scl=Pin(1), freq=400000)
+            oled = SSD1306_I2C(128, 64, i2c)
+
+            # Define una imagen de termómetro (bitarray)
+            temperature_image = bytearray(
+                b'\x00\x00\x00\x00\x00\x00\x00\x00'
+                b'\x00\x07\x07\x07\x00\x00\x00\x00'
+                b'\x00\x07\x07\x07\x07\x00\x00\x00'
+                b'\x00\x07\x07\x07\x07\x00\x00\x00'
+                b'\x00\x07\x07\x07\x07\x00\x00\x00'
+                b'\x00\x07\x07\x07\x07\x00\x00\x00'
+                b'\x00\x07\x07\x07\x07\x00\x00\x00'
+                b'\x00\x07\x07\x07\x00\x00\x00\x00'
+            )
+            fb = framebuf.FrameBuffer(temperature_image, 8, 8, framebuf.MONO_HLSB)
+
+            # Configuración del sensor de temperatura
+            sensor_temp = machine.ADC(4)
+            conversion_factor = 3.3 / (65535)
+
+            # Establecer la posición de inicio para mostrar la temperatura
+            x = 0
+            y = 0
+
+            while True:
+                # Leer la temperatura
+                reading = sensor_temp.read_u16() * conversion_factor
+                temperature = 27 - (reading - 0.706) / 0.001721
+                temperature_str = "{:.1f} C".format(temperature)
+
+                # Dibujar la imagen de termómetro en la pantalla
+                oled.fill(0)
+                oled.blit(fb, x, y)
+                oled.text(temperature_str, x + 12, y + 10, 1)
+
+                # Mostrar emojis en función del rango de temperatura
+                if temperature <= 20:
+                    # Emoji frío
+                    oled.text("🥶", 110, 54)
+                elif 20 < temperature <= 30:
+                    # Emoji tibio
+                    oled.text("😎", 110, 54)
+                else:
+                    # Emoji caliente
+                    oled.text("🥵", 110, 54)
+
+                oled.show()
+
+                # Esperar antes de la siguiente lectura
+                utime.sleep(2)
+
+
+        </pre>
+
+    </div>
+</body>
+</html>
