@@ -33,11 +33,13 @@
             40% Funciona el sensor de temperatura <br>
             40% Despliega segun los  caso mixtos mencionados o nuevas propuestas. <br>
         </p>
-        <img src="./img/temperatura.png" alt="Oled con temperatura" class="centered-image">
+        <img src="./img/TemperaturaFeliz.png" alt="Oled con temperatura carita feliz" class="centered-image">
+        <img src="./img/TemperaturaTriste.png" alt="Oled con temperatura carita triste" class="centered-image">
+
         <pre>
+
             from machine import Pin, I2C
             from ssd1306 import SSD1306_I2C
-            import framebuf
             import machine
             import utime
 
@@ -45,26 +47,13 @@
             i2c = I2C(0, sda=Pin(0), scl=Pin(1), freq=400000)
             oled = SSD1306_I2C(128, 64, i2c)
 
-            # Define una imagen de termómetro (bitarray)
-            temperature_image = bytearray(
-                b'\x00\x00\x00\x00\x00\x00\x00\x00'
-                b'\x00\x07\x07\x07\x00\x00\x00\x00'
-                b'\x00\x07\x07\x07\x07\x00\x00\x00'
-                b'\x00\x07\x07\x07\x07\x00\x00\x00'
-                b'\x00\x07\x07\x07\x07\x00\x00\x00'
-                b'\x00\x07\x07\x07\x07\x00\x00\x00'
-                b'\x00\x07\x07\x07\x07\x00\x00\x00'
-                b'\x00\x07\x07\x07\x00\x00\x00\x00'
-            )
-            fb = framebuf.FrameBuffer(temperature_image, 8, 8, framebuf.MONO_HLSB)
-
             # Configuración del sensor de temperatura
             sensor_temp = machine.ADC(4)
             conversion_factor = 3.3 / (65535)
 
-            # Establecer la posición de inicio para mostrar la temperatura
-            x = 0
-            y = 0
+            # Iniciales
+            x_initials = 0
+            y_initials = 0
 
             while True:
                 # Leer la temperatura
@@ -74,28 +63,28 @@
 
                 # Dibujar la imagen de termómetro en la pantalla
                 oled.fill(0)
-                oled.blit(fb, x, y)
-                oled.text(temperature_str, x + 12, y + 10, 1)
+                oled.text("INICIALES", x_initials, y_initials, 1)  # Iniciales
+                oled.text(temperature_str, 0, 40, 1)  # Temperatura
 
                 # Mostrar emojis en función del rango de temperatura
-                if temperature <= 20:
-                    # Emoji frío
-                    oled.text("🥶", 110, 54)
-                elif 20 < temperature <= 30:
-                    # Emoji tibio
-                    oled.text("😎", 110, 54)
+                emoji = ":)"  # Carita feliz por defecto
+                if temperature <= 22.4:
+                    # Emoji frío (carita triste)
+                    emoji = ":("
+                elif temperature >= 22.5 and temperature <= 28:
+                    # Emoji tibio (carita feliz)
+                    emoji = ":)"
                 else:
-                    # Emoji caliente
-                    oled.text("🥵", 110, 54)
+                    # Emoji caliente (carita con lentes)
+                    emoji = "8-"
+
+                oled.text(emoji, 96, 0, 1)
 
                 oled.show()
 
                 # Esperar antes de la siguiente lectura
                 utime.sleep(2)
-
-
         </pre>
-
     </div>
 </body>
 </html>
